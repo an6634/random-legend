@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0b0d11" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Random Legend" />
+<meta name="mobile-web-app-capable" content="yes" />
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<title>Apex Random Legend Generator</title>
+<style>
+  :root{
+    --bg:#0b0d11;
+    --panel:#12161c;
+    --panel2:#191e25;
+    --text:#f4f5f7;
+    --muted:#99a2ad;
+    --line:#2a3038;
+    --red:#e54141;
+    --red2:#ff5a52;
+    --gold:#d8ad5a;
+    --shadow:0 20px 60px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;min-height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:
+    radial-gradient(circle at 75% 15%,rgba(229,65,65,.13),transparent 32rem),
+    linear-gradient(145deg,#090b0e 0%,#0e1116 55%,#090b0e 100%);
+    color:var(--text)}
+  body{min-height:100vh;padding:28px}
+  button{font:inherit}
+  .app{width:min(1100px,100%);margin:0 auto}
+  header{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:22px}
+  .brand{display:flex;align-items:center;gap:13px}
+  .mark{width:48px;height:48px;border:2px solid var(--red);clip-path:polygon(50% 0,100% 100%,76% 100%,50% 48%,24% 100%,0 100%);background:linear-gradient(180deg,rgba(229,65,65,.28),rgba(229,65,65,.04))}
+  h1{font-size:clamp(1.45rem,3vw,2.2rem);line-height:1;margin:0;letter-spacing:.04em;text-transform:uppercase}
+  .subtitle{color:var(--muted);margin-top:6px;font-size:.92rem}
+  .badge{border:1px solid var(--line);background:rgba(18,22,28,.76);padding:9px 12px;border-radius:999px;color:var(--muted);font-size:.78rem;white-space:nowrap}
+  .layout{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:18px}
+  .main,.side{background:linear-gradient(180deg,rgba(20,24,30,.96),rgba(14,17,22,.96));border:1px solid var(--line);box-shadow:var(--shadow);border-radius:18px}
+  .main{padding:22px;overflow:hidden;position:relative}
+  .main:before{content:"";position:absolute;inset:0 0 auto 0;height:3px;background:linear-gradient(90deg,var(--red),transparent 72%)}
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .mode{display:flex;background:#0c0f13;border:1px solid var(--line);border-radius:11px;padding:4px}
+  .mode button,.filter{border:0;color:var(--muted);background:transparent;cursor:pointer}
+  .mode button{padding:8px 12px;border-radius:8px;font-weight:700}
+  .mode button.active{background:var(--panel2);color:#fff}
+  .counter{font-size:.83rem;color:var(--muted)}
+  .filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px}
+  .filter{border:1px solid var(--line);padding:8px 11px;border-radius:999px;background:#0d1015;font-size:.8rem;transition:.18s}
+  .filter:hover{border-color:#56606c;color:#fff}
+  .filter.active{border-color:var(--accent,var(--red));color:#fff;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent,var(--red)) 40%, transparent)}
+  .stage{min-height:360px;display:grid;place-items:center;position:relative;border:1px solid var(--line);border-radius:16px;background:
+    linear-gradient(rgba(255,255,255,.018) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px),
+    #0c0f13;background-size:32px 32px;overflow:hidden}
+  .stage:after{content:"";position:absolute;width:360px;height:360px;border-radius:50%;border:1px solid rgba(255,255,255,.035);box-shadow:0 0 0 80px rgba(255,255,255,.012),0 0 0 160px rgba(255,255,255,.008)}
+  .placeholder{z-index:1;text-align:center;color:var(--muted);padding:30px}
+  .placeholder .big{font-size:3rem;color:#343b44;font-weight:900;line-height:1;margin-bottom:14px}
+  .result-grid{position:relative;z-index:2;width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:18px}
+  .result-grid.single{grid-template-columns:1fr;max-width:520px}
+  .legend-card{position:relative;min-height:275px;padding:24px 18px 18px;border:1px solid color-mix(in srgb,var(--accent) 55%,#252b33);border-radius:15px;background:
+    radial-gradient(circle at 50% 10%,color-mix(in srgb,var(--accent) 20%,transparent),transparent 50%),
+    linear-gradient(180deg,#171b21,#0e1115);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;animation:pop .28s ease-out}
+  @keyframes pop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
+  .legend-card .num{position:absolute;top:12px;left:14px;color:#626b76;font-size:.75rem;font-weight:800}
+  .avatar{width:112px;height:112px;border-radius:50%;border:2px solid var(--accent);display:grid;place-items:center;background:#0d1015;box-shadow:0 0 36px color-mix(in srgb,var(--accent) 18%,transparent);font-size:2.35rem;font-weight:1000;letter-spacing:-.08em;margin-bottom:18px}
+  .legend-name{font-size:1.8rem;font-weight:900;text-transform:uppercase;letter-spacing:.035em}
+  .class{margin-top:8px;color:var(--accent);font-weight:800;font-size:.8rem;text-transform:uppercase;letter-spacing:.12em}
+  .roll{width:100%;margin-top:16px;padding:15px 20px;border:0;border-radius:12px;background:linear-gradient(180deg,var(--red2),var(--red));color:white;font-weight:900;text-transform:uppercase;letter-spacing:.08em;cursor:pointer;box-shadow:0 10px 25px rgba(229,65,65,.2);transition:.15s}
+  .roll:hover{filter:brightness(1.07);transform:translateY(-1px)}
+  .roll:active{transform:translateY(1px)}
+  .roll:disabled{opacity:.45;cursor:not-allowed;transform:none}
+  .hint{text-align:center;margin-top:9px;color:#737d88;font-size:.76rem}
+  kbd{border:1px solid #424a55;background:#151a20;border-radius:5px;padding:1px 5px;color:#c8ced5;font-size:.72rem}
+  .side{padding:18px;min-height:100%}
+  .side h2{font-size:.9rem;text-transform:uppercase;letter-spacing:.12em;margin:2px 0 14px}
+  .history{display:flex;flex-direction:column;gap:8px}
+  .history-empty{color:var(--muted);font-size:.83rem;line-height:1.5;border:1px dashed var(--line);border-radius:12px;padding:14px}
+  .history-item{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--line);background:#0e1115;padding:10px 11px;border-radius:10px}
+  .history-name{font-weight:800;font-size:.87rem}
+  .history-class{font-size:.69rem;color:var(--accent);margin-top:2px;text-transform:uppercase}
+  .history-index{font-size:.72rem;color:#5e6771}
+  .side-rule{height:1px;background:var(--line);margin:17px 0}
+  .clear{width:100%;border:1px solid var(--line);background:transparent;color:var(--muted);padding:9px;border-radius:9px;cursor:pointer}
+  .clear:hover{color:#fff;border-color:#4a535e}
+  .info{font-size:.76rem;color:#6e7781;line-height:1.55;margin-top:16px}
+  footer{text-align:center;color:#555e68;font-size:.72rem;margin-top:14px}
+
+  .pool-panel{margin-top:16px;border:1px solid var(--line);border-radius:14px;background:#0c0f13;overflow:hidden}
+  .pool-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px;border-bottom:1px solid var(--line)}
+  .pool-title{font-weight:900;text-transform:uppercase;letter-spacing:.08em;font-size:.82rem}
+  .pool-actions{display:flex;gap:7px;flex-wrap:wrap}
+  .pool-action{border:1px solid var(--line);background:#141920;color:var(--muted);padding:6px 9px;border-radius:8px;font-size:.72rem;cursor:pointer}
+  .pool-action:hover{color:#fff;border-color:#4b5561}
+  .legend-toggles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:12px;max-height:240px;overflow:auto}
+  .legend-toggle{display:flex;align-items:center;gap:8px;border:1px solid var(--line);background:#11151a;padding:8px 9px;border-radius:9px;cursor:pointer;min-width:0}
+  .legend-toggle.off{opacity:.45}
+  .legend-toggle input{accent-color:var(--accent);flex:0 0 auto}
+  .legend-toggle span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:.78rem;font-weight:700}
+  .pool-note{padding:0 12px 12px;color:#69727d;font-size:.72rem}
+  @media(max-width:760px){
+    body{padding:15px}
+    header{align-items:flex-start}
+    .badge{display:none}
+    .layout{grid-template-columns:1fr}
+    .stage{min-height:330px}
+    .result-grid{grid-template-columns:1fr;max-height:560px;overflow:auto}
+    .legend-toggles{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .legend-card{min-height:210px}
+    .avatar{width:82px;height:82px;font-size:1.8rem}
+    .legend-name{font-size:1.45rem}
+  }
+
+  /* v1.3.0 PWA / iPhone polish */
+  html{
+    background:#090b0e;
+    -webkit-text-size-adjust:100%;
+    touch-action:manipulation;
+  }
+  body{
+    padding-top:max(28px, env(safe-area-inset-top));
+    padding-right:max(28px, env(safe-area-inset-right));
+    padding-bottom:max(28px, env(safe-area-inset-bottom));
+    padding-left:max(28px, env(safe-area-inset-left));
+    overscroll-behavior-y:none;
+  }
+  button,.filter,.legend-toggle{-webkit-tap-highlight-color:transparent}
+  button{touch-action:manipulation}
+  .install-note{
+    display:none;
+    margin:0 0 16px;
+    padding:11px 13px;
+    border:1px solid var(--line);
+    border-radius:12px;
+    background:#11161c;
+    color:var(--muted);
+    font-size:.78rem;
+    line-height:1.45;
+  }
+  .install-note strong{color:#fff}
+  .offline-pill{
+    position:fixed;
+    z-index:20;
+    right:max(12px, env(safe-area-inset-right));
+    bottom:max(12px, env(safe-area-inset-bottom));
+    padding:7px 10px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    background:#11161c;
+    color:var(--muted);
+    font-size:.68rem;
+    box-shadow:var(--shadow);
+    opacity:0;
+    pointer-events:none;
+    transform:translateY(6px);
+    transition:.2s;
+  }
+  .offline-pill.show{opacity:1;transform:translateY(0)}
+  @media(max-width:760px){
+    body{
+      padding-top:max(14px, env(safe-area-inset-top));
+      padding-right:max(12px, env(safe-area-inset-right));
+      padding-bottom:max(18px, env(safe-area-inset-bottom));
+      padding-left:max(12px, env(safe-area-inset-left));
+    }
+    .app{width:100%}
+    header{margin-bottom:14px}
+    .brand{gap:10px}
+    .mark{width:38px;height:38px}
+    h1{font-size:1.45rem}
+    .subtitle{font-size:.78rem}
+    .main{padding:14px;border-radius:15px}
+    .toolbar{margin-bottom:12px}
+    .mode{width:100%}
+    .mode button{flex:1;min-height:42px}
+    .counter{width:100%;text-align:right;font-size:.74rem}
+    .filters{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:12px}
+    .filter{padding:9px 6px;font-size:.72rem;text-align:center}
+    .stage{min-height:285px;border-radius:13px}
+    .stage:after{width:260px;height:260px}
+    .result-grid{padding:10px}
+    .legend-card{min-height:250px;padding:20px 12px}
+    .avatar{width:92px;height:92px;font-size:1.9rem;margin-bottom:14px}
+    .legend-name{font-size:1.55rem}
+    .pool-panel{margin-top:12px}
+    .pool-head{padding:11px}
+    .pool-title{font-size:.76rem}
+    .pool-action{min-height:36px;padding:7px 9px}
+    .legend-toggles{
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      max-height:300px;
+      padding:9px;
+      gap:7px;
+    }
+    .legend-toggle{
+      min-height:42px;
+      padding:8px;
+    }
+    .legend-toggle input{width:16px;height:16px}
+    .legend-toggle span{font-size:.74rem}
+    .pool-note{font-size:.68rem;padding:0 10px 10px}
+    .roll{position:sticky;bottom:max(8px, env(safe-area-inset-bottom));z-index:10;min-height:52px;margin-top:12px;box-shadow:0 12px 35px rgba(229,65,65,.32)}
+    .hint{font-size:.68rem;line-height:1.55}
+    .side{padding:14px}
+    .history{display:grid;grid-template-columns:1fr 1fr}
+    .history-empty{grid-column:1/-1}
+    footer{padding-bottom:4px}
+  }
+  @media(display-mode:standalone){
+    .install-note{display:none!important}
+  }
+
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="brand">
+      <div class="mark" aria-hidden="true"></div>
+      <div>
+        <h1>Random Legend</h1>
+        <div class="subtitle">Let fate pick your next Apex Legend.</div>
+      </div>
+    </div>
+    <div class="badge">28 Legends • v1.3.0</div>
+  </header>
+  <div class="install-note" id="installNote">
+    <strong>Install on iPhone:</strong> open this site in Safari, tap Share, then <strong>Add to Home Screen</strong>.
+  </div>
+
+  <div class="layout">
+    <main class="main">
+      <div class="toolbar">
+        <div class="mode" aria-label="Generator mode">
+          <button class="active" data-mode="single">1 Legend</button>
+          <button data-mode="squad">Squad of 3</button>
+        </div>
+        <div class="counter" id="counter">28 eligible Legends</div>
+      </div>
+
+      <div class="filters" id="filters"></div>
+
+      <section class="stage" id="stage" aria-live="polite">
+        <div class="placeholder" id="placeholder">
+          <div class="big">?</div>
+          Pick a class or leave it on <strong>All</strong>, then roll.
+        </div>
+      </section>
+
+      <section class="pool-panel">
+        <div class="pool-head">
+          <div class="pool-title">Legend Pool</div>
+          <div class="pool-actions">
+            <button class="pool-action" id="enableAll">Enable All</button>
+            <button class="pool-action" id="disableAll">Disable All</button>
+          </div>
+        </div>
+        <div class="legend-toggles" id="legendToggles"></div>
+        <div class="pool-note">Disabled Legends are excluded from every roll. Your choices are saved on this device.</div>
+      </section>
+
+      <button class="roll" id="rollBtn">Randomize Legend</button>
+      <div class="hint"><kbd>R</kbd> or <kbd>Space</kbd> randomize &nbsp;•&nbsp; <kbd>1</kbd> single &nbsp;•&nbsp; <kbd>3</kbd> squad</div>
+    </main>
+
+    <aside class="side">
+      <h2>Recent Rolls</h2>
+      <div class="history" id="history"></div>
+      <div class="side-rule"></div>
+      <button class="clear" id="clearHistory">Clear History</button>
+      <div class="info">
+        Rolls avoid immediately repeating the exact same result when possible. Squad mode always picks three unique Legends.
+      </div>
+    </aside>
+  </div>
+
+  <footer>Unofficial fan-made utility. Apex Legends is a trademark of Electronic Arts Inc.</footer>
+</div>
+<div class="offline-pill" id="offlinePill">Offline mode ready</div>
+
+<script>
+const legends = [
+  {name:"Alter", class:"Skirmisher"},
+  {name:"Ash", class:"Skirmisher"},
+  {name:"Axle", class:"Skirmisher"},
+  {name:"Ballistic", class:"Assault"},
+  {name:"Bangalore", class:"Assault"},
+  {name:"Bloodhound", class:"Recon"},
+  {name:"Catalyst", class:"Controller"},
+  {name:"Caustic", class:"Controller"},
+  {name:"Conduit", class:"Support"},
+  {name:"Crypto", class:"Recon"},
+  {name:"Fuse", class:"Assault"},
+  {name:"Gibraltar", class:"Support"},
+  {name:"Horizon", class:"Skirmisher"},
+  {name:"Lifeline", class:"Support"},
+  {name:"Loba", class:"Support"},
+  {name:"Mad Maggie", class:"Assault"},
+  {name:"Mirage", class:"Support"},
+  {name:"Newcastle", class:"Support"},
+  {name:"Octane", class:"Skirmisher"},
+  {name:"Pathfinder", class:"Skirmisher"},
+  {name:"Rampart", class:"Controller"},
+  {name:"Revenant", class:"Assault"},
+  {name:"Seer", class:"Recon"},
+  {name:"Sparrow", class:"Recon"},
+  {name:"Valkyrie", class:"Recon"},
+  {name:"Vantage", class:"Recon"},
+  {name:"Wattson", class:"Controller"},
+  {name:"Wraith", class:"Skirmisher"}
+];
+
+const classColors = {
+  All:"#e54141",
+  Assault:"#e65b51",
+  Skirmisher:"#54a7ff",
+  Recon:"#52c5c8",
+  Controller:"#d7a953",
+  Support:"#70cc78"
+};
+
+const classOrder = ["All","Assault","Skirmisher","Recon","Controller","Support"];
+let selectedClass = "All";
+let mode = "single";
+let previousSignature = "";
+let history = JSON.parse(localStorage.getItem("apexRandomHistory") || "[]").slice(0,10);
+let enabledNames = new Set(JSON.parse(localStorage.getItem("apexEnabledLegends") || "null") || legends.map(l=>l.name));
+
+const filters = document.getElementById("filters");
+const counter = document.getElementById("counter");
+const stage = document.getElementById("stage");
+const rollBtn = document.getElementById("rollBtn");
+const historyEl = document.getElementById("history");
+
+function initials(name){
+  const parts = name.split(/\s+/);
+  return parts.length > 1 ? parts.map(x=>x[0]).join("").slice(0,2) : name.slice(0,2);
+}
+
+function eligible(){
+  const base = selectedClass === "All" ? legends : legends.filter(l=>l.class === selectedClass);
+  return base.filter(l=>enabledNames.has(l.name));
+}
+
+function saveEnabled(){
+  localStorage.setItem("apexEnabledLegends", JSON.stringify([...enabledNames]));
+}
+
+function renderLegendToggles(){
+  const wrap=document.getElementById("legendToggles");
+  wrap.innerHTML="";
+  legends.forEach(l=>{
+    const label=document.createElement("label");
+    label.className="legend-toggle" + (enabledNames.has(l.name)?"":" off");
+    label.style.setProperty("--accent",classColors[l.class]);
+    label.innerHTML=`<input type="checkbox" ${enabledNames.has(l.name)?"checked":""} aria-label="Enable ${l.name}"><span>${l.name}</span>`;
+    const cb=label.querySelector("input");
+    cb.addEventListener("change",()=>{
+      if(cb.checked) enabledNames.add(l.name); else enabledNames.delete(l.name);
+      label.classList.toggle("off",!cb.checked);
+      saveEnabled();
+      previousSignature="";
+      updateCounter();
+    });
+    wrap.appendChild(label);
+  });
+}
+
+function renderFilters(){
+  filters.innerHTML = "";
+  classOrder.forEach(cls=>{
+    const b=document.createElement("button");
+    b.className="filter"+(cls===selectedClass?" active":"");
+    b.textContent=cls;
+    b.style.setProperty("--accent",classColors[cls]);
+    b.onclick=()=>{
+      selectedClass=cls;
+      previousSignature="";
+      renderFilters();
+      updateCounter();
+    };
+    filters.appendChild(b);
+  });
+}
+
+function updateCounter(){
+  const count=eligible().length;
+  const enabledTotal=enabledNames.size;
+  counter.textContent=`${count} eligible • ${enabledTotal}/28 enabled`;
+  const notEnough = (mode==="squad" && count<3) || (mode==="single" && count<1);
+  rollBtn.disabled=notEnough;
+  rollBtn.textContent=notEnough ? (mode==="squad" ? "Need at least 3 enabled Legends" : "Enable at least 1 Legend") : (mode==="squad" ? "Randomize Squad" : "Randomize Legend");
+}
+
+function randomItems(list,n){
+  const copy=[...list];
+  for(let i=copy.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [copy[i],copy[j]]=[copy[j],copy[i]];
+  }
+  return copy.slice(0,n);
+}
+
+function roll(){
+  const pool=eligible();
+  const n=mode==="squad"?3:1;
+  if(pool.length<n) return;
+
+  let picks, signature, tries=0;
+  do{
+    picks=randomItems(pool,n);
+    signature=picks.map(x=>x.name).sort().join("|");
+    tries++;
+  }while(signature===previousSignature && pool.length>n && tries<15);
+
+  previousSignature=signature;
+  renderResult(picks);
+
+  picks.forEach(p=>history.unshift({...p,time:Date.now()}));
+  history=history.slice(0,10);
+  localStorage.setItem("apexRandomHistory",JSON.stringify(history));
+  renderHistory();
+}
+
+function renderResult(picks){
+  const grid=document.createElement("div");
+  grid.className="result-grid"+(picks.length===1?" single":"");
+
+  picks.forEach((p,i)=>{
+    const card=document.createElement("article");
+    card.className="legend-card";
+    card.style.setProperty("--accent",classColors[p.class]);
+    card.innerHTML=`
+      ${picks.length>1?`<div class="num">PICK ${i+1}</div>`:""}
+      <div class="avatar">${initials(p.name).toUpperCase()}</div>
+      <div class="legend-name">${p.name}</div>
+      <div class="class">${p.class}</div>
+    `;
+    grid.appendChild(card);
+  });
+
+  stage.innerHTML="";
+  stage.appendChild(grid);
+}
+
+function renderHistory(){
+  historyEl.innerHTML="";
+  if(!history.length){
+    historyEl.innerHTML='<div class="history-empty">No rolls yet. Your last 10 picks will show up here.</div>';
+    return;
+  }
+  history.forEach((p,i)=>{
+    const el=document.createElement("div");
+    el.className="history-item";
+    el.style.setProperty("--accent",classColors[p.class]);
+    el.innerHTML=`
+      <div>
+        <div class="history-name">${p.name}</div>
+        <div class="history-class">${p.class}</div>
+      </div>
+      <div class="history-index">#${i+1}</div>
+    `;
+    historyEl.appendChild(el);
+  });
+}
+
+document.querySelectorAll(".mode button").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll(".mode button").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    mode=btn.dataset.mode;
+    previousSignature="";
+    updateCounter();
+  });
+});
+
+rollBtn.addEventListener("click",roll);
+document.getElementById("clearHistory").addEventListener("click",()=>{
+  history=[];
+  localStorage.removeItem("apexRandomHistory");
+  renderHistory();
+});
+
+document.getElementById("enableAll").addEventListener("click",()=>{
+  enabledNames=new Set(legends.map(l=>l.name));
+  saveEnabled();
+  previousSignature="";
+  renderLegendToggles();
+  updateCounter();
+});
+
+document.getElementById("disableAll").addEventListener("click",()=>{
+  enabledNames=new Set();
+  saveEnabled();
+  previousSignature="";
+  renderLegendToggles();
+  updateCounter();
+});
+
+document.addEventListener("keydown",e=>{
+  if(e.target.matches("input,textarea,select")) return;
+  if(e.key.toLowerCase()==="r" || e.code==="Space"){
+    e.preventDefault();
+    roll();
+  } else if(e.key==="1"){
+    document.querySelector('[data-mode="single"]').click();
+  } else if(e.key==="3"){
+    document.querySelector('[data-mode="squad"]').click();
+  }
+});
+
+renderFilters();
+renderLegendToggles();
+updateCounter();
+renderHistory();
+
+// PWA support
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+  });
+}
+
+const isStandalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+const installNote = document.getElementById("installNote");
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+if (installNote && isIOS && !isStandalone) installNote.style.display = "block";
+
+const offlinePill = document.getElementById("offlinePill");
+function showConnectivity(text){
+  if(!offlinePill) return;
+  offlinePill.textContent = text;
+  offlinePill.classList.add("show");
+  clearTimeout(window.__offlineTimer);
+  window.__offlineTimer = setTimeout(()=>offlinePill.classList.remove("show"), 1800);
+}
+window.addEventListener("offline",()=>showConnectivity("Offline — app still works"));
+window.addEventListener("online",()=>showConnectivity("Back online"));
+
+</script>
+</body>
+</html>
